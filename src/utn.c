@@ -7,8 +7,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdio_ext.h>
+#include <string.h>
 
-static int esNumerica(char* cadena)
+int esNumerica(char* cadena)
 {
 	int ret = -1;
 	int i= 0;
@@ -30,19 +31,16 @@ static int esNumerica(char* cadena)
 	return ret;
 }
 
-
-static int getInt(int* pResultado)
+int getInt(int* pResultado)
 {
 	int ret = -1;
 	char buffer[64];
-	fgets(buffer,sizeof(buffer),stdin);
-	 buffer[strlen(buffer)-1]='\0';
+	fgets(buffer,sizeof(buffer),stdin); //toma lo que escribe el usario por consola
+	buffer[strlen(buffer)-1]='\0'; //elimina el  \0
 
-
-
-	if(esNumerica(buffer))
+	if(esNumerica(buffer)) //valida si es un numero
 	{
-		*pResultado = atoi(buffer);
+		*pResultado = atoi(buffer); //si es un numero, lo convierte a entero, y lo asigna a pResultado
 		ret = 1;
 	}
 	return ret;
@@ -56,7 +54,7 @@ int utn_getNumero(int* pResultado, char* mensaje, char* mensajeError, int minimo
 	while(reintentos>0) //mientras que los reintentos sean mayores a 0
 	{
 		printf(mensaje); //muestre en pantalla el mensaje pidiendo un numero
-		if(getInt(numero)==1)
+		if(getInt(&numero)==1)
 		{
 			if(numero<=maximo&&numero>=minimo)//si es menor que el maximo y mayor que el minimo, all OK
 			{
@@ -80,5 +78,3 @@ int utn_getNumero(int* pResultado, char* mensaje, char* mensajeError, int minimo
 
 	return retorno; // la funcion devuelve lo guardado en return
 }
-
-
