@@ -1,80 +1,295 @@
-/*
- * utn.c
- *
- *  Created on: 14 sep. 2019
- *      Author: federico
- */
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdio_ext.h>
 #include <string.h>
 
-int esNumerica(char* cadena)
+
+static int isValidUnsignedInt(char* cadena)
 {
-	int ret = -1;
-	int i= 0;
-	if(cadena != NULL)
+	int retorno = -1; //valor que indica que la función no ha cumplido su cometido
+	int i = 0; //variable para ir recorriendo el array 'cadena'
+	if(cadena != NULL) //elimina el caso en el que el usuario presione ENTER sin haber escrito nada
 	{
-		while(cadena[i] != '\0')
+		while(cadena[i] != '\0') //mientras que no haya llegado al final de la cadena, entra en el loop
 		{
-			if(cadena[i]<0 || cadena[i]>9)
+			if(cadena[i] < '0' || cadena[i] > '9') //validación: entra al if si el caracter evaluado NO es un numero del 0 al 9
 			{
-				break;
+				break; //no hay necesidad de seguir recorriendo la cadena pq ya encontró un caracter que NO es numérico, ya la validación falló, es decir, la cadeno NO es numérica
 			}
-			i++;
+			i++; //si llega acá es porque el caracter si es numérico, entonces toca avanzar al próximo caracter de la cadena
 		}
-		if (cadena[i] == '\0')
+		if(cadena[i] == '\0') //este if es para evaluar si la función salió del while por haber llegado al final de la cadena, y no por que haya encontrado un caracter no numérico
 		{
-			ret = 1;
+			retorno = 1; //valor que indica que la función SI cumplió su cometido
 		}
 	}
-	return ret;
+	
+	return retorno;
 }
 
-int getInt(int* pResultado)
+static int getUnsignedInt(int* pResultado)
 {
-	int ret = -1;
-	char buffer[64];
-	fgets(buffer,sizeof(buffer),stdin); //toma lo que escribe el usario por consola
-	buffer[strlen(buffer)-1]='\0'; //elimina el  \0
-
-	if(esNumerica(buffer)) //valida si es un numero
+	int retorno = -1; //valor indicativo de que la función NO cumplió su cometido
+	char buffer[64]; //acá voy a almacenar temporalmente lo que el usuario ingresa para luego validarlo
+	fgets(buffer, sizeof(buffer), stdin); //guarda lo que el usuario tipea en la variable 'buffer'
+	buffer[strlen(buffer) - 1] = '\0'; //trunca el ingreso del usuario al tamaño de la variable 'buffer' y le pone al final el indicador de final de cadena.
+	
+	if(isValidUnsignedInt(buffer)) //validacion de 'buffer' utilizando la función apropiada (en este caso, 'esEntero')
 	{
-		*pResultado = atoi(buffer); //si es un numero, lo convierte a entero, y lo asigna a pResultado
-		ret = 1;
+		*pResultado = atoi(buffer); //guarda el valor de 'buffer' en la variable cuya direccion es pResultado
+		retorno = 1; //valor que indica que la función cumplió su cometido
 	}
-	return ret;
+	
+	return retorno;
 }
 
-int utn_getNumero(int* pResultado, char* mensaje, char* mensajeError, int minimo, int maximo, int reintentos)
+int utn_getUnsignedInt(int* pResultado,
+ char* mensaje,
+ char* mensajeError,
+ int minimo,
+ int maximo,
+ int reintentos)
 {
 	int retorno;
 	int numero;
-
-	while(reintentos>0) //mientras que los reintentos sean mayores a 0
+	
+	do //que al menos una vez muestre el mensaje pidiendo el ingreso del valor
 	{
-		printf(mensaje); //muestre en pantalla el mensaje pidiendo un numero
-		if(getInt(&numero)==1)
+		printf(mensaje);
+		if(getUnsignedInt(&numero) == 1) //la funcion getInt (valida que el ingreso sea un entero y lo guarda en pResultado). Si es asi, retorna 1... y entra al if
 		{
-			if(numero<=maximo&&numero>=minimo)//si es menor que el maximo y mayor que el minimo, all OK
+			if(numero <= maximo && numero >= minimo) //si numero esta dentro del rango, sale del loop 
 			{
-				break; //all ok, entonces sale
+				break;		
 			}
 		}
-		__fpurge(stdin);
-
-		reintentos--; //resta un reintento
-		printf(mensajeError);// da mensaje de error
-	}
-	if (reintentos==0) //si reintentos quedo en 0, retorno -1, el usuario se paso de la cantidad de reintentos
+		reintentos--; //sino, resta un reintento.
+		printf(mensajeError); //y muestra mensaje de error
+	} while(reintentos > 0); // hasta que reintentos llegue a 0
+	
+	if(reintentos == 0) //sino, si es 0, es decir que no quedan reintentos...
 	{
-		retorno=-1; //error en la funcion
+		retorno = -1; // este valor indica que la función utn_getEntero no logró guardar un numero, pq se acabaron los intentos
 	}
 	else
 	{
-		retorno=0; // sino, retorno es 0(no hay error)
-		*pResultado = numero; //y guardo el numero en el puntero pResultado
+		retorno = 0; // este valor indica que la funcion logro guardar un numero entero que está dentro del rango permitido
+		*pResultado = numero; // asigno a *pResultado el valor guardado en la variable numero
 	}
-
-	return retorno; // la funcion devuelve lo guardado en return
+	
+	return retorno; //la funcion utn_getEntero tiene que devolver un valor, el guardado en retorno
 }
+
+
+static int isValidSignedInt(char* cadena)
+{
+	int retorno = -1; //valor que indica que la función no ha cumplido su cometido
+	int i = 0; //variable para ir recorriendo el array 'cadena'
+	if(cadena != NULL) //elimina el caso en el que el usuario presione ENTER sin haber escrito nada
+	{
+		while(cadena[i] != '\0') //mientras que no haya llegado al final de la cadena, entra en el loop
+		{
+			if(i == 0)
+			{
+				if((cadena[i] < '0' || cadena[i] > '9') && (cadena[i] != '-' && cadena[i] != '+')) //validación: entra al if si el caracter evaluado NO es un numero del 0 al 9 ni '+' ni '-'
+				{
+					break; //no hay necesidad de seguir recorriendo la cadena pq ya encontró un caracter que NO es válido, ya la validación falló
+				}
+			}
+			else
+			{
+				if(cadena[i] < '0' || cadena[i] > '9') //validación: entra al if si el caracter evaluado NO es un numero del 0 al 9
+				{
+					break; //no hay necesidad de seguir recorriendo la cadena pq ya encontró un caracter que NO es numérico, ya la validación falló, es decir, la cadeno NO es numérica
+				}
+			}
+			i++; //si llega acá es porque el caracter si es numérico, entonces toca avanzar al próximo caracter de la cadena			
+		}
+		if(cadena[i] == '\0') //este if es para evaluar si la función salió del while por haber llegado al final de la cadena, y no por que haya encontrado un caracter no valido
+		{
+			retorno = 1; //valor que indica que la función SI cumplió su cometido
+		}
+	}
+	
+	return retorno;
+}
+
+static int getSignedInt(int* pResultado)
+{
+	int retorno = -1; //valor indicativo de que la función NO cumplió su cometido
+	char buffer[64]; //acá voy a almacenar temporalmente lo que el usuario ingresa para luego validarlo
+	fgets(buffer, sizeof(buffer), stdin); //guarda lo que el usuario tipea en la variable 'buffer'
+	buffer[strlen(buffer) - 1] = '\0'; //trunca el ingreso del usuario al tamaño de la variable 'buffer' y le pone al final el indicador de final de cadena.
+	
+	if(isValidSignedInt(buffer)) //validacion de 'buffer' utilizando la función apropiada (en este caso, 'esEntero')
+	{
+		*pResultado = atoi(buffer); //guarda el valor de 'buffer' en la variable cuya direccion es pResultado
+		retorno = 1; //valor que indica que la función cumplió su cometido
+	}
+	
+	return retorno;
+}
+
+
+int utn_getSignedInt(int* pResultado,
+ char* mensaje,
+ char* mensajeError,
+ int minimo,
+ int maximo,
+ int reintentos)
+{
+	int retorno;
+	int numero;
+	
+	do //que al menos una vez muestre el mensaje pidiendo el ingreso del valor
+	{
+		printf(mensaje);
+		if(getSignedInt(&numero) == 1) //la funcion getInt (valida que el ingreso sea un entero y lo guarda en pResultado). Si es asi, retorna 1... y entra al if
+		{
+			if(numero <= maximo && numero >= minimo) //si numero esta dentro del rango, sale del loop 
+			{
+				break;		
+			}
+		}
+		reintentos--; //sino, resta un reintento.
+		printf(mensajeError); //y muestra mensaje de error
+	} while(reintentos > 0); // hasta que reintentos llegue a 0
+	
+	if(reintentos == 0) //sino, si es 0, es decir que no quedan reintentos...
+	{
+		retorno = -1; // este valor indica que la función utn_getEntero no logró guardar un numero, pq se acabaron los intentos
+	}
+	else
+	{
+		retorno = 0; // este valor indica que la funcion logro guardar un numero entero que está dentro del rango permitido
+		*pResultado = numero; // asigno a *pResultado el valor guardado en la variable numero
+	}
+	
+	return retorno; //la funcion utn_getEntero tiene que devolver un valor, el guardado en retorno
+}
+
+
+static int isValidDouble(char* cadena)
+{
+	int retorno = -1; //valor que indica que la función no ha cumplido su cometido
+	int i = 0; //variable para ir recorriendo el array 'cadena'
+	char puntoUsado = 0;
+	
+	if(cadena != NULL) //elimina el caso en el que el usuario presione ENTER sin haber escrito nada
+	{
+		while(cadena[i] != '\0') //mientras que no haya llegado al final de la cadena, entra en el loop
+		{
+			if(i == 0)
+			{
+				if((cadena[i] < '0' || cadena[i] > '9') && (cadena[i] != '-' && cadena[i] != '+')) //validación: entra al if si el caracter evaluado NO es un numero del 0 al 9 ni '+' ni '-'
+				{
+					break; //no hay necesidad de seguir recorriendo la cadena pq ya encontró un caracter que NO es válido, ya la validación falló
+				}
+			}
+			else if (i == 1)
+			{
+				if(cadena[i] < '0' || cadena[i] > '9') //validación: entra al if si el caracter evaluado NO es un numero del 0 al 9
+				{
+					break; //no hay necesidad de seguir recorriendo la cadena pq ya encontró un caracter que NO es numérico, ya la validación falló, es decir, la cadeno NO es numérica
+				}
+			}
+			else
+			{
+				if(puntoUsado == 1)
+				{
+					if(cadena[i] < '0' || cadena[i] > '9') //validación: entra al if si el caracter evaluado NO es un numero del 0 al 9
+					{
+						break; //no hay necesidad de seguir recorriendo la cadena pq ya encontró un caracter que NO es numérico, ya la validación falló, es decir, la cadeno NO es numérica
+					}
+				}
+				else
+				{
+					if((cadena[i] < '0' || cadena[i] > '9') && (cadena[i] != '.' )) //validación: entra al if si el caracter evaluado NO es un numero del 0 al 9 ni '+' ni '-'
+					{
+						break; //no hay necesidad de seguir recorriendo la cadena pq ya encontró un caracter que NO es válido, ya la validación falló
+					}
+					if(cadena[i] == '.')
+					{
+						puntoUsado = 1;
+					}
+				}
+			}
+			i++; //si llega acá es porque el caracter si es numérico, entonces toca avanzar al próximo caracter de la cadena			
+		}
+		if(cadena[i] == '\0') //este if es para evaluar si la función salió del while por haber llegado al final de la cadena, y no por que haya encontrado un caracter no valido
+		{
+			retorno = 1; //valor que indica que la función SI cumplió su cometido
+		}
+	}
+	
+	return retorno;
+}
+
+static int getDouble(double* pResultado)
+{
+	int retorno = -1; //valor indicativo de que la función NO cumplió su cometido
+	char buffer[64]; //acá voy a almacenar temporalmente lo que el usuario ingresa para luego validarlo
+	fgets(buffer, sizeof(buffer), stdin); //guarda lo que el usuario tipea en la variable 'buffer'
+	buffer[strlen(buffer) - 1] = '\0'; //trunca el ingreso del usuario al tamaño de la variable 'buffer' y le pone al final el indicador de final de cadena.
+	
+	if(isValidDouble(buffer)) //validacion de 'buffer' utilizando la función apropiada (en este caso, 'esEntero')
+	{
+		*pResultado = atof(buffer); //guarda el valor de 'buffer' en la variable cuya direccion es pResultado
+		retorno = 1; //valor que indica que la función cumplió su cometido
+	}
+	
+	return retorno;
+}
+
+
+int utn_getDouble(double* pResultado,
+ char* mensaje,
+ char* mensajeError,
+ double minimo,
+ double maximo,
+ int reintentos)
+{
+	int retorno;
+	double numero;
+	
+	do //que al menos una vez muestre el mensaje pidiendo el ingreso del valor
+	{
+		printf(mensaje);
+		if(getDouble(&numero) == 1) //la funcion getInt (valida que el ingreso sea un entero y lo guarda en pResultado). Si es asi, retorna 1... y entra al if
+		{
+			if(numero <= maximo && numero >= minimo) //si numero esta dentro del rango, sale del loop 
+			{
+				break;		
+			}
+		}
+		reintentos--; //sino, resta un reintento.
+		printf(mensajeError); //y muestra mensaje de error
+	} while(reintentos > 0); // hasta que reintentos llegue a 0
+	
+	if(reintentos == 0) //sino, si es 0, es decir que no quedan reintentos...
+	{
+		retorno = -1; // este valor indica que la función utn_getEntero no logró guardar un numero, pq se acabaron los intentos
+	}
+	else
+	{
+		retorno = 0; // este valor indica que la funcion logro guardar un numero entero que está dentro del rango permitido
+		*pResultado = numero; // asigno a *pResultado el valor guardado en la variable numero
+	}
+	
+	return retorno; //la funcion utn_getEntero tiene que devolver un valor, el guardado en retorno
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
